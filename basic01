@@ -1,0 +1,95 @@
+<?php
+
+/*-----Increase file size on .htaccess file--------*/
+php_value upload_max_filesize 2560M
+php_value post_max_size 2560M
+php_value max_execution_time 3000
+php_value max_input_time 3000
+
+/*-------------Used Url-------------*/
+ home_url(); get_site_url();
+
+/*-------------Used Logo-------------*/
+the_custom_logo();
+
+/*-------------Start Upload SVG Code------------------*/
+
+add_filter( 'wp_check_filetype_and_ext', function($data, $file, $filename, $mimes) {
+  $filetype = wp_check_filetype( $filename, $mimes );
+  return [
+      'ext'             => $filetype['ext'],
+      'type'            => $filetype['type'],
+      'proper_filename' => $data['proper_filename']
+  ];
+
+}, 10, 4 );
+
+function cc_mime_types( $mimes ){
+  $mimes['svg'] = 'image/svg+xml';
+  return $mimes;
+}
+add_filter( 'upload_mimes', 'cc_mime_types' );
+function fix_svg() {
+  echo '<style type="text/css">
+        .attachment-266x266, .thumbnail img {
+             width: 100% !important;
+             height: auto !important;
+        }
+        </style>';
+}
+add_action( 'admin_head', 'fix_svg' );
+
+/*-------------End Upload SVG Code------------------*/
+
+// Theme Option Create For ACF
+/*---------Start Theme Option----------*/
+if( function_exists('acf_add_options_page') ) {
+    acf_add_options_page(array(
+    'page_title'  => 'Theme General Settings',
+    'menu_title'  => 'Theme Settings',
+    'menu_slug'   => 'theme-general-settings',
+    //'capability'  => 'edit_posts',
+    //'redirect'    => false
+  ));
+  acf_add_options_sub_page(array(
+    'page_title'  => 'Theme Header Settings',
+    'menu_title'  => 'Header',
+    'parent_slug' => 'theme-general-settings',
+  ));
+  acf_add_options_sub_page(array(
+    'page_title'  => 'Theme Footer Settings',
+    'menu_title'  => 'Footer',
+    'parent_slug' => 'theme-general-settings',
+  ));
+}
+/*---------End Theme Option----------*/
+
+
+/*---------Start Short Code----------*/
+function my_custom_shortcode() {
+    return 'This is my custom shortcode content';
+}
+add_shortcode('custom_shortcode', 'my_custom_shortcode');
+
+/*----How to use shortCode------*/
+echo do_shortcode('[custom_shortcode]');
+/*-----------End Short Code-------------*/
+
+
+/*---------Start How to add active class on nav menu----------*/
+add_filter('nav_menu_css_class' , 'special_nav_class' , 10 , 2);
+
+function special_nav_class ($classes, $item) {
+  if (in_array('current-menu-item', $classes) ){
+    $classes[] = 'active ';
+  }
+  return $classes;
+}
+/*---------End Add Active Class In Menu----------*/
+
+/*---------Enqueue Scripts and Style----------*/
+function add_scripts() {
+  wp_enqueue_script('bootstrap-js', 'https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js', array( 'jquery' ),'',true );
+  wp_enqueue_style( 'registration-form-css', get_stylesheet_directory_uri() . '/css/style.css',true );
+}
+add_action( 'wp_enqueue_scripts', 'add_scripts' );
